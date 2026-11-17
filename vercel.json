@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "create-react-app",
+  "installCommand": "node scripts/run_installpackages.js",
+  "buildCommand": "node scripts/run_tests.js && node scripts/run_build.js",
+  "outputDirectory": "build"
+}

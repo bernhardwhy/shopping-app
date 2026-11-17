@@ -34,5 +34,8 @@ project settings without an explicit user request.
 - The older `build-7hod5h06u-bernhardwhy-gmailcom.vercel.app` URL belongs to a
   separate CLI deployment in `build-50uo`; it is not the Git-linked branch preview.
 
-See the [README deployment section](../README.md#deployment) for the verified
-process and current blocker. Keep it current when deployment configuration changes.
+The stable production domain is `https://shopping-app-pi.vercel.app`; verify its
+deployment after a master release instead of sharing a preview-specific hostname.
+
+See the [README deployment section](../README.md#deployment) for the release
+process and build compatibility decisions. Keep it current when deployment configuration changes.

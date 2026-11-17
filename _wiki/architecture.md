@@ -3,17 +3,17 @@
 ## High-Level Overview
 
 - **Purpose**: A browser-based grocery list for viewing, searching, adding, categorizing, and marking grocery items as bought.
-- **Languages**: TypeScript (3.5.3), JavaScript, and CSS.
-- **Frameworks and libraries**: React 16.8.6, Create React App / `react-scripts` 3.0.1, Material-UI 4, and Firebase SDK 6.3.3.
+- **Languages**: TypeScript (4.9.5), JavaScript, and CSS.
+- **Frameworks and libraries**: React 16.8.6, Create React App / `react-scripts` 5.0.1, Material-UI 4, and Firebase SDK 8.10.1.
 - **Package manager**: npm; dependencies and scripts are declared in `package.json` and `package-lock.json`.
 - **Persistence**: Firebase Realtime Database, accessed through the Firebase client SDK. There is no project-owned backend or local database service.
-- **Local development**: Install npm dependencies and run `npm start`. The app needs network access and a reachable Firebase database for grocery data.
+- **Local development**: Use Node.js 22.x, install with `node scripts/run_installpackages.js`, and start with `node scripts/run_start.js`. The app needs network access and a reachable Firebase database for grocery data.
 
 ## Architecture
 
 ### Style and building blocks
 
-The application is a single-page React client. `src/index.tsx` mounts `App` and registers the service worker. `App` owns grocery-list state and Firebase reads and writes. `GroceryList` renders and edits items; `SearchDialog` filters existing items and adds new ones. `GroceryType` describes grocery records.
+The application is a single-page React client. `src/index.tsx` mounts `App` and registers the service worker. CRA injects the build's asset manifest into `src/service-worker.js` for Workbox app-shell precaching. Firebase responses are not cached by this worker. `App` owns grocery-list state and Firebase reads and writes. `GroceryList` renders and edits items; `SearchDialog` filters existing items and adds new ones. `GroceryType` describes grocery records.
 
 Components communicate through props and callbacks. Firebase access is concentrated in `App` and initialized in `src/shared/config.tsx`; there is no separate repository or service layer.
 
@@ -29,7 +29,16 @@ Firebase client configuration is located in `src/shared/config.tsx`; configurati
 
 Tests use Jest through Create React App (`npm test`). Existing tests are component-render smoke tests in `src/App.test.tsx` and `src/GroceryList/GroceryList.test.tsx`; no Firebase integration tests or coverage threshold are configured.
 
-CircleCI configuration in `.circleci/config.yml` uses Node 8, installs npm dependencies, runs `npm test -- --coverage`, and uploads coverage through the Code Climate test reporter. No deployment job is defined there.
+Vercel's Git integration deploys feature branches as previews and `master` as production. `vercel.json` runs a locked dependency install, component tests, and the production build. Static output is served at the stable production domain, `https://shopping-app-pi.vercel.app`. Firebase remains the browser's external data service.
+
+The separate legacy CircleCI configuration uses Node 8 and is not compatible with the current toolchain. It is not the Vercel deployment gate.
+
+### ADR: Supported Node.js build without a UI migration
+
+- **Status**: Accepted for the pipeline repair.
+- **Context**: Vercel rejects Node.js 16. On Node.js 22, CRA 3's webpack 4 fails with an OpenSSL error and Firebase 6's native gRPC dependency is incompatible.
+- **Decision**: Use Node.js 22, CRA 5/webpack 5, TypeScript 4.9, and Firebase 8's namespaced API. Keep React 16, component ownership, Firebase configuration, and the grocery data model unchanged. Install from the public npm registry with `npm ci`; run tests before every Vercel build.
+- **Consequences**: The app builds without legacy crypto flags or disabled checks. These remain legacy application dependencies, not a full modernization. Firebase access rules and runtime availability still require separate validation.
 
 ### C4 system context
 
@@ -46,16 +55,22 @@ The diagram keeps the system boundary at the shopping-list application and shows
 - **Boundary**: The browser application reads and writes directly through the Firebase SDK; no application API sits between them.
 - **Unresolved assumptions**: Authentication and database rules are not represented in this repository and must be checked in the Firebase project.
 
-### CircleCI
+### Vercel
+
+- **Role**: Git-driven preview and production hosting.
+- **Source/configuration**: `vercel.json`, Node engine in `package.json`, and Vercel project `shopping-app-67k0` linked to `bernhardwhy/shopping-app`.
+- **Boundary**: Builds and serves static frontend assets; it does not host or proxy the Firebase database.
+- **Release**: Merge a verified feature preview into `master` to update the stable domain. See the [deployment guide](../README.md#deployment).
+
+### CircleCI (legacy)
 
 - **Role**: Continuous integration for dependency installation and test/coverage reporting.
 - **Source/configuration**: `.circleci/config.yml`.
 - **Boundary**: CircleCI checks out the repository and runs npm commands; no deployment or runtime traffic is configured.
-- **Unresolved assumptions**: Deployment is managed outside the checked-in pipeline, if applicable.
+- **Unresolved assumptions**: Whether this legacy integration remains enabled is not verified. Deployment is handled by Vercel.
 
-### Azure Artifacts npm feed
+### Public npm registry
 
-- **Role**: Developer tooling feed for `@techtalk/agentic-engineering`; it is not an application runtime dependency.
+- **Role**: Public application and build-tool dependency installation.
 - **Source/configuration**: Root `.npmrc`.
-- **Boundary**: npm uses the feed during package resolution. The feed did not provide a transitive public dependency during CLI installation, so that one-off CLI install used the Azure feed for `@techtalk` and npmjs.org for public dependencies.
-- **Unresolved assumptions**: Public-package upstream availability in the feed is not established.
+- **Boundary**: npm resolves the committed lockfile against `https://registry.npmjs.org/`; cloud builds need no private feed credentials.

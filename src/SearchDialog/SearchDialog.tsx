@@ -97,12 +97,12 @@ const SearchDialog = (props: SearchDialogProps) => {
   const classes = useStyles();
   const [openDialog, setOpen] = React.useState(false);
   const [showSnackbar, setSnackbarOpen] = React.useState(false);
-  const [filteredGroceries, setFilteredGroceries] = React.useState();
+  const [filteredGroceries, setFilteredGroceries] = React.useState<GroceryType[] | null>();
   const [searchInput, setSearchInput] = React.useState("");
 
   useEffect(() => {
     setOpen(props.openDialog);
-  });
+  }, [props.openDialog]);
 
   function handleDialogClose() {
     props.onCloseDialog();
@@ -160,6 +160,7 @@ const SearchDialog = (props: SearchDialogProps) => {
         </div>
       );
     }
+    return null;
   });
 
   return (

@@ -9,10 +9,11 @@ This React app helps shoppers manage a grocery list, with grocery data stored in
 
 ## Tech Stack
 
-- **TypeScript 3.5.3, JavaScript, and CSS** — application source.
-- **React 16.8.6 and Create React App 3.0.1** — UI and development/build tooling.
+- **TypeScript 4.9.5, JavaScript, and CSS** — application source.
+- **React 16.8.6 and Create React App 5.0.1** — UI and development/build tooling.
 - **Material-UI 4** — interface components.
-- **Firebase SDK 6.3.3** — direct browser access to the Realtime Database.
+- **Firebase SDK 8.10.1** — direct browser access to the Realtime Database, using the namespaced API.
+- **Node.js 22.x** — local and Vercel build runtime.
 - **npm** — dependencies and scripts in `package.json` and `package-lock.json`.
 - **Jest through Create React App** — test runner.
 
@@ -37,7 +38,7 @@ This React app helps shoppers manage a grocery list, with grocery data stored in
 ### At PR time
 
 - Agent review is expected for naming, file structure, error handling, and documentation conventions. These reviews are not wired into an automated CI reviewer.
-- CircleCI runs `npm test -- --coverage`. Tests must pass before merge; no coverage threshold is configured.
+- Vercel runs the component tests before building each deployment. Failed tests or builds prevent publication; no coverage threshold is configured.
 
 ### On schedule
 
@@ -49,14 +50,16 @@ This React app helps shoppers manage a grocery list, with grocery data stored in
 
 - **Firebase is external**: There is no local database or backend service in the repository. The browser app needs network access to Firebase for grocery data.
 - **Access rules are external**: The repository does not define Firebase authentication or database rules. Verify those in the Firebase project; do not copy configuration values into documentation.
-- **The toolchain is old**: CircleCI uses Node 8 and the project uses Create React App 3. Newer local Node versions may expose compatibility failures in old build dependencies.
+- **Use the pinned runtime**: Install with `node scripts/run_installpackages.js` on Node 22. This uses `npm ci` and the public npm registry. The separate legacy CircleCI Node 8 configuration is not compatible with this toolchain.
 - **The default test command watches**: Use `scripts/run_tests.js` for a non-interactive test run.
 
 ---
 
 ## Architecture Decisions
 
-No explicit architecture decisions or ADRs are recorded in `AGENTS.md` or `REFLECTION_LOG.md`. [`_wiki/architecture.md`](_wiki/architecture.md) documents the current components, data flow, and external boundaries; treat it as a factual overview rather than a decision log.
+[`_wiki/architecture.md`](_wiki/architecture.md) documents the current components,
+data flow, external boundaries, and the ADR for the supported Node.js build
+without a UI migration.
 
 ---
 
@@ -64,14 +67,14 @@ No explicit architecture decisions or ADRs are recorded in `AGENTS.md` or `REFLE
 
 Run `scripts/run_tests.js` to execute Jest through Create React App without watch mode. Pass an optional test file path to narrow the run. The existing tests are component-render smoke tests in `src/App.test.tsx` and `src/GroceryList/GroceryList.test.tsx`; there are no Firebase integration tests or coverage threshold.
 
-Run `scripts/run_build.js` for the production build. CircleCI uses Node 8 and runs the test suite with coverage reporting from `.circleci/config.yml`.
+Run `scripts/run_build.js` for the production build. Vercel runs both wrappers before deployment; see the [README deployment section](README.md#deployment) for the stable URL and feature-branch-to-master release process.
 
 ---
 
 ## How the Harness Works
 
 - **Advisory loop** — no editing hooks are configured.
-- **Strict loop** — CircleCI runs the deterministic test check. Agent-review constraints are expectations for review, not automated pipeline gates.
+- **Strict loop** — Vercel runs the deterministic test and build checks. Agent-review constraints are expectations for review, not automated pipeline gates.
 - **Investigative loop** — four monthly garbage-collection reviews are declared in `HARNESS.md`; no scheduled runner is configured.
 
 Observability snapshots, reflection reviews, and onboarding refreshes have a monthly cadence.

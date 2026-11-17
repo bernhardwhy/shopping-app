@@ -1,24 +1,25 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import GroceryList from "./GroceryList";
+import { GroceryType } from "../groceryType";
 
-it("renders without crashing", () => {
+it("renders the grocery name", () => {
   const div = document.createElement("div");
-  const groceries = [];
-  let activeGroceryState: boolean;
-  let changeData: () => void;
-  groceries.push({
+  const groceries: GroceryType[] = [{
     id: "213",
     name: "test",
-    buyed: true
-  });
+    buyed: true,
+    area: "Hother"
+  }];
   ReactDOM.render(
     <GroceryList
       groceries={groceries}
-      activeGroceryState={activeGroceryState}
-      changeData={changeData}
+      changeData={jest.fn()}
+      changeGrocerieName={jest.fn()}
+      changeGrocerieArea={jest.fn()}
     />,
     div
   );
+  expect(div.textContent).toContain("test");
   ReactDOM.unmountComponentAtNode(div);
 });

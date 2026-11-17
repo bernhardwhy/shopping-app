@@ -2,6 +2,9 @@
   "name": "continuos-deploy-basics",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@material-ui/core": "^4.3.1",
     "@material-ui/icons": "^4.2.1",
@@ -9,11 +12,14 @@
     "@types/node": "^12.6.8",
     "@types/react": "^16.8.23",
     "@types/react-dom": "^16.8.5",
-    "firebase": "^6.3.3",
+    "firebase": "8.10.1",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-scripts": "3.0.1",
-    "typescript": "^3.5.3"
+    "react-scripts": "5.0.1",
+    "typescript": "~4.9.5",
+    "workbox-core": "6.6.0",
+    "workbox-precaching": "6.6.0",
+    "workbox-routing": "6.6.0"
   },
   "scripts": {
     "start": "react-scripts start",

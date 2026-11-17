@@ -6,7 +6,22 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Available Scripts
 
-In the project directory, you can run:s
+Use Node.js 22.x. Install the locked dependencies from the public npm registry:
+
+```powershell
+node scripts\run_installpackages.js
+```
+
+This runs `npm ci`; dependency changes must include an updated `package-lock.json`.
+Use the repository wrappers for local validation and development:
+
+```powershell
+node scripts\run_tests.js
+node scripts\run_build.js
+node scripts\run_start.js
+```
+
+The underlying npm scripts are described below.
 
 ### `npm start`
 
@@ -68,22 +83,34 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/ad
 #### Git-connected Vercel pipeline
 
 The GitHub repository `bernhardwhy/shopping-app` is connected directly to the
-Vercel project **shopping-app-67k0**. Deployment configuration lives in Vercel,
-not in a GitHub Actions workflow or a checked-in `vercel.json`.
+Vercel project **shopping-app-67k0**. Checked-in [`vercel.json`](vercel.json)
+defines installation, test/build commands, framework, and output directory.
+[`package.json`](package.json) and the Vercel project settings select Node.js 22.x.
+
+**Stable app URL: https://shopping-app-pi.vercel.app**
+
+Share this production domain, not a deployment-specific preview URL. The domain
+is already attached to this project and has no branch override. A successful
+production deployment updates it automatically; failed builds do not publish.
+At repair verification, this domain returned `404 DEPLOYMENT_NOT_FOUND` because
+there was no usable production deployment. The fix is verified on a feature
+preview first; merge it into `master` to publish the repaired app at this domain.
 
 - [Vercel project and deployments](https://vercel.com/bernhardwhygmailcoms-projects/shopping-app-67k0)
 - Push committed changes to GitHub; Vercel checks out the commit and starts a
   deployment. Local, uncommitted changes are not included.
-- Branch deployments are previews. Historical production deployments use
-  `master`; confirm the current Production Branch in Vercel before promoting
-  changes.
-- The project uses Vercel's **Create React App** preset. The repository build
-  script runs `react-scripts build` and produces static assets in `build/`.
-  Check Vercel's Build & Development Settings for command overrides; the inspected
-  run failed before installation or the build command could execute.
-- CircleCI is separate: its checked-in configuration runs tests and coverage,
-  not deployment. No dependency between that test job and Vercel deployment
-  was verified.
+- Feature branches deploy as previews; `master` deploys to production. Review the
+  preview, then merge the feature branch into `master` to publish to the stable URL.
+- Vercel runs `node scripts/run_installpackages.js` (`npm ci`), then
+  `node scripts/run_tests.js && node scripts/run_build.js`. A failing test or build
+  blocks publication. Create React App produces the static assets in `build/`.
+- No CLI upload or manual domain reassignment is needed for normal releases.
+- The service worker precaches the app shell for offline use. Existing tabs retain
+  their current version until closed; close all app tabs and reopen after a release
+  if an installed app still shows cached content. Firebase data still needs network
+  access. The web manifest launches `/` on the current deployment's origin.
+- CircleCI is separate and is not the deployment gate. Its legacy Node 8
+  configuration is not compatible with this toolchain; it is not modernized here.
 
 Before pushing, validate locally with the repository wrappers:
 
@@ -92,24 +119,21 @@ node scripts\run_tests.js
 node scripts\run_build.js
 ```
 
-#### Current blocker (verified 2026-11-17)
+#### Build compatibility
 
-The preview for branch `ae_onboarding`, commit
-`7a979824646b57cd7c378c6a45c129395ea50826`, failed with
-`BUILD_UTILS_NODE_VERSION_INVALID`:
+The former Node.js 16 setting was rejected by Vercel before installation.
+Node.js 22 also exposed webpack 4's OpenSSL incompatibility and the old Firebase
+SDK's native gRPC dependency. The pipeline repair uses Create React App 5.0.1
+(webpack 5), TypeScript 4.9.5, and Firebase 8.10.1's existing namespaced API.
+React 16 and the app's UI/data model are unchanged. No legacy OpenSSL flag,
+disabled type checks, or ignored CI warnings are required.
+[`src/service-worker.js`](src/service-worker.js) restores CRA's opt-in Workbox
+precache generation so the existing registration and offline app shell keep working.
 
-> Found invalid or discontinued Node.js Version: "16.x". Please set Node.js Version to 26.x in your Project Settings to use Node.js 26.
-
-[Inspect the failed deployment and build logs](https://vercel.com/bernhardwhygmailcoms-projects/shopping-app-67k0/4QWstHHa9zhZrUotx8gu4TgSGc8p).
-The failure occurs after checkout, before dependency installation; it does not
-establish whether application compilation or tests pass.
-
-Recovery requires selecting a supported Node.js version in Vercel's project
-settings and validating this old Create React App 3 toolchain with that version.
-The version suggested by Vercel's error is not proof of application compatibility.
-After the compatibility work, push a commit or explicitly redeploy, then verify
-the matching commit, build logs, `READY` status, and preview page. No settings were
-changed and no redeployment was triggered during this inspection.
+To investigate a failure, match the deployment's Git SHA to the pushed commit and
+read its build logs. A local green build alone does not verify cloud deployment.
+After a production release, check the stable URL in a browser and confirm grocery
+data loads; Firebase access is external to Vercel and component tests mock it.
 
 #### Existing CLI-hosted page
 
