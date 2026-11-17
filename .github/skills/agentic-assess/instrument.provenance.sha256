@@ -1,0 +1,5 @@
+# Provenance manifest for the embedded Agentic Experience instrument.
+# Recorded by check-provenance.js --update at the last deliberate re-sync.
+# instrument-version: 0.2.0
+5b18e61691a2fbe047313a6c1cf917a0cbc0e9732b54929ef2fe75533006aedd  _wiki/model/agentic-maturity-model.md
+c3890b5398f20af956aad6b38bff26fe392e67243fdc4bc56eeb704038d2cd7d  _wiki/model/cognitive-ladder.md

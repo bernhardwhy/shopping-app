@@ -1,0 +1,25 @@
+<mxfile host="app.diagrams.net" modified="2026-11-17T09:00:00.000Z" agent="Agentic Engineering" version="24.7.17">
+  <diagram id="shopping-context" name="System Context">
+    <mxGraphModel dx="1100" dy="460" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="460" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="shopper" value="Shopper&#xa;[Person]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="180" width="190" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="app" value="Shopping List App&#xa;[Software System]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="160" width="250" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="firebase" value="Firebase Realtime Database&#xa;[Software System]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="830" y="170" width="220" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="uses-app" value="Manages grocery list" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#666666;fontSize=13;" edge="1" parent="1" source="shopper" target="app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="uses-db" value="Reads and writes grocery items" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#666666;fontSize=13;" edge="1" parent="1" source="app" target="firebase">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

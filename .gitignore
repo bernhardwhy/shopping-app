@@ -21,3 +21,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.agentic/
+_temp/
+# Allow sharing project-relevant MCP configuration with the team
+!.vscode/mcp.json

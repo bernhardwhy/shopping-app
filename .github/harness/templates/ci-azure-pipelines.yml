@@ -1,0 +1,18 @@
+trigger: none
+
+pr:
+  branches:
+    include:
+      - '*'
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+    clean: true
+
+  - script: |
+      echo "Replace this placeholder with deterministic harness checks for this repo."
+      echo "Examples: tests, lint, type-check, gitleaks."
+    displayName: Placeholder deterministic checks
