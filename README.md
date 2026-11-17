@@ -105,6 +105,10 @@ preview first; merge it into `master` to publish the repaired app at this domain
   `node scripts/run_tests.js && node scripts/run_build.js`. A failing test or build
   blocks publication. Create React App produces the static assets in `build/`.
 - No CLI upload or manual domain reassignment is needed for normal releases.
+- The service worker precaches the app shell for offline use. Existing tabs retain
+  their current version until closed; close all app tabs and reopen after a release
+  if an installed app still shows cached content. Firebase data still needs network
+  access. The web manifest launches `/` on the current deployment's origin.
 - CircleCI is separate and is not the deployment gate. Its legacy Node 8
   configuration is not compatible with this toolchain; it is not modernized here.
 
@@ -123,6 +127,8 @@ SDK's native gRPC dependency. The pipeline repair uses Create React App 5.0.1
 (webpack 5), TypeScript 4.9.5, and Firebase 8.10.1's existing namespaced API.
 React 16 and the app's UI/data model are unchanged. No legacy OpenSSL flag,
 disabled type checks, or ignored CI warnings are required.
+[`src/service-worker.js`](src/service-worker.js) restores CRA's opt-in Workbox
+precache generation so the existing registration and offline app shell keep working.
 
 To investigate a failure, match the deployment's Git SHA to the pushed commit and
 read its build logs. A local green build alone does not verify cloud deployment.

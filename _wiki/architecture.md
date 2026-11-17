@@ -13,7 +13,7 @@
 
 ### Style and building blocks
 
-The application is a single-page React client. `src/index.tsx` mounts `App` and registers the service worker. `App` owns grocery-list state and Firebase reads and writes. `GroceryList` renders and edits items; `SearchDialog` filters existing items and adds new ones. `GroceryType` describes grocery records.
+The application is a single-page React client. `src/index.tsx` mounts `App` and registers the service worker. CRA injects the build's asset manifest into `src/service-worker.js` for Workbox app-shell precaching. Firebase responses are not cached by this worker. `App` owns grocery-list state and Firebase reads and writes. `GroceryList` renders and edits items; `SearchDialog` filters existing items and adds new ones. `GroceryType` describes grocery records.
 
 Components communicate through props and callbacks. Firebase access is concentrated in `App` and initialized in `src/shared/config.tsx`; there is no separate repository or service layer.
 
