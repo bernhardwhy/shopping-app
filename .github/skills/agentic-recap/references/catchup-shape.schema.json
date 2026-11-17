@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1",
+  "kind": "catchup-shape",
+  "window": { "days": "<int>" },
+  "landmarkCount": "<int>",
+  "commitCount": "<int>",
+  "mergeCount": "<int>",
+  "authorCount": "<int>",
+  "touchedAreaCount": "<int>",
+  "themeCount": "<int>",
+  "themes": [
+    { "class": "how-we-work|ordinary", "habitatClass": "harness-constraint|skills-agents|ci-workflow|null", "landmarkCount": "<int>", "anchored": "<bool>" }
+  ],
+  "withheld": ["theme-names", "commit-subjects", "anchor-ids", "author-names", "area-names", "dates", "client-identifiers", "code", "paths"],
+  "disclosedBeyondShape": []
+}

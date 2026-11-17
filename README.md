@@ -1,5 +1,9 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+[![Harness](https://img.shields.io/badge/Harness-5%2F7_enforced-4682B4?style=flat-square)](HARNESS.md)
+
+[Contributor onboarding](ONBOARDING.md)
+
 ## Available Scripts
 
 In the project directory, you can run:s
