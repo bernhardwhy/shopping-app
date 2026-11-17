@@ -57,7 +57,9 @@ This React app helps shoppers manage a grocery list, with grocery data stored in
 
 ## Architecture Decisions
 
-No explicit architecture decisions or ADRs are recorded in `AGENTS.md` or `REFLECTION_LOG.md`. [`_wiki/architecture.md`](_wiki/architecture.md) documents the current components, data flow, and external boundaries; treat it as a factual overview rather than a decision log.
+[`_wiki/architecture.md`](_wiki/architecture.md) documents the current components,
+data flow, external boundaries, and the ADR for the supported Node.js build
+without a UI migration.
 
 ---
 

@@ -92,6 +92,9 @@ defines installation, test/build commands, framework, and output directory.
 Share this production domain, not a deployment-specific preview URL. The domain
 is already attached to this project and has no branch override. A successful
 production deployment updates it automatically; failed builds do not publish.
+At repair verification, this domain returned `404 DEPLOYMENT_NOT_FOUND` because
+there was no usable production deployment. The fix is verified on a feature
+preview first; merge it into `master` to publish the repaired app at this domain.
 
 - [Vercel project and deployments](https://vercel.com/bernhardwhygmailcoms-projects/shopping-app-67k0)
 - Push committed changes to GitHub; Vercel checks out the commit and starts a
