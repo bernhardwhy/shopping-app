@@ -11,7 +11,7 @@
 ### Stack
 
 - **Primary languages**: TypeScript, JavaScript, CSS
-- **Build system**: npm and Create React App 3.0.1 (`react-scripts`)
+- **Build system**: Node.js 22.x, npm, and Create React App 5.0.1 (`react-scripts`); locked installs through `scripts/run_installpackages.js`
 - **Test framework**: Jest via Create React App (`npm test`)
 - **Container strategy**: none detected
 
@@ -72,7 +72,7 @@
 
 - **Rule**: The project's test suite must pass with zero failures before code is merged
 - **Enforcement**: deterministic
-- **Tool**: `npm test -- --coverage` (CircleCI)
+- **Tool**: `node scripts/run_tests.js` (Vercel, before the production build)
 - **Scope**: pr
 
 ---
