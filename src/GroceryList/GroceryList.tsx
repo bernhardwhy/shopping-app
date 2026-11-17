@@ -1,247 +1,329 @@
 import React, { Component } from "react";
-import { GroceryType } from "../groceryType";
-import "./GroceryList.css";
+import { Button, IconButton, TextField } from "@material-ui/core";
 import ShoppingCartOutlined from "@material-ui/icons/ShoppingCartOutlined";
 import DoneOutlined from "@material-ui/icons/DoneOutlined";
-import {
-  Card,
-  CardContent,
-  Typography,
-  CardActions,
-  Button,
-  Slide,
-  Zoom,
-  TextField,
-  Chip, 
-  FormControl,
-  MenuItem,
-  Select,
-  InputLabel
-} from "@material-ui/core";
-import SettingsIcon from "@material-ui/icons/Settings";
+import CheckBoxOutlineBlank from "@material-ui/icons/CheckBoxOutlineBlank";
+import SettingsOutlined from "@material-ui/icons/SettingsOutlined";
+import CheckOutlined from "@material-ui/icons/CheckOutlined";
+import { GroceryType } from "../groceryType";
+import { isMarketId, marketLabel, markets, MarketFilter, MarketId, MarketView } from "../markets";
+import "./GroceryList.css";
 
 type GroceryProps = {
   groceries: GroceryType[];
-  changeData: any;
-  changeGrocerieName: (groceryId: string, groceryName: string) => void;
-  changeGrocerieArea: (groceryId: string, groceryArea: string) => void;
+  changeData: (groceryId: string, isBuyed: boolean) => Promise<void>;
+  changeGrocerieName: (groceryId: string, groceryName: string) => Promise<void>;
+  changeGrocerieArea: (groceryId: string, groceryArea: string) => Promise<void>;
+  changeGrocerieMarket: (groceryId: string, market: MarketId | null) => Promise<void>;
+  selectedMarket: MarketFilter;
+  marketViews: MarketView[];
+  onSelectMarket: (market: MarketFilter) => void;
+  pendingIds: string[];
+  completed: boolean;
+  movedItemId: string | null;
 };
 
-const AreaNames = { 
-  Avegetables: {
-    name: "Obst & Gemüse",
-    identifier: "Avegetables",
-    color: '#79B4B7',
-  },
-  Bcooling: {
-    name: "Milchprodukte & Eier",
-    identifier: "Bcooling",
-    color: '#93B5C6',
-  },
-  Fhygiene: {
-    name: "Hygieneabteilung",
-    identifier: "Fhygiene",
-    color: '#FFE3E3',
-  },
-  Cmeat: {
-    name: "Fleisch & Fisch",
-    identifier: 'Cmeat',
-    color: '#FFADAD',
-  },
-  Ebakery: {
-    name: "Brot",
-    identifier: 'Ebakery',
-    color: '#f3b76f',
-  },
-  Gcakestuff: {
-    name: "Backabteilung",
-    identifier: 'Gcakestuff',
-    color: '#ffb8f0',
-  },
-  DdryFood: {
-  name: "Trockenware",
-  identifier: 'DdryFood',
-  color: "#ffe2bf",
-},
-Hother: {
-    name: "Sonstiges",
-    identifier: 'Hother',
-    color: "#d0d0d084",
-  }
+type GroceryState = {
+  editMode: boolean;
+  names: Record<string, string>;
+  areas: Record<string, string>;
+  marketDrafts: Record<string, string>;
+  errors: Record<string, { name: string; retry: () => void }>;
+};
+
+const OtherArea = { identifier: "Hother", name: "Sonstiges" };
+
+const AreaNames = [
+  { identifier: "Avegetables", name: "Obst & Gemüse" },
+  { identifier: "Bcooling", name: "Milchprodukte & Eier" },
+  { identifier: "Cmeat", name: "Fleisch & Fisch" },
+  { identifier: "DdryFood", name: "Trockenware" },
+  { identifier: "Ebakery", name: "Brot" },
+  { identifier: "Fhygiene", name: "Hygieneabteilung" },
+  { identifier: "Gcakestuff", name: "Backabteilung" },
+  OtherArea
+];
+
+function getArea(identifier?: string | null) {
+  return AreaNames.find(area => area.identifier === identifier) || OtherArea;
 }
 
-export default class GroceryList extends Component<GroceryProps> {
-  state = {
-    showSuccessMessage: false,
-    editMode: false,
-    area: '',
-  };
+export default class GroceryList extends Component<GroceryProps, GroceryState, string | null> {
+  state: GroceryState = { editMode: false, names: {}, areas: {}, marketDrafts: {}, errors: {} };
+  private list = React.createRef<HTMLDivElement>();
+  private mounted = false;
+  private operations = new Map<string, number>();
 
-  handleGroceryBuyedButtonClicked = (
-    groceryId: string,
-    GroceryBuyed: boolean
-  ) => {
-    if (this.props.groceries.length === 1) {
-      //display success message
-      this.setState({
-        showSuccessMessage: true
-      });
-      setTimeout(() => {
-        this.setState({
-          showSuccessMessage: false
-        });
-      }, 2000);
+  componentDidMount() {
+    this.mounted = true;
+  }
+
+  componentWillUnmount() {
+    this.mounted = false;
+  }
+
+  getSnapshotBeforeUpdate() {
+    const active = document.activeElement;
+    return active instanceof HTMLElement && this.list.current?.contains(active)
+      ? active.id
+      : null;
+  }
+
+  componentDidUpdate(
+    previousProps: GroceryProps,
+    previousState: GroceryState,
+    focusedFieldId: string | null
+  ) {
+    // Regrouping an edited item replaces its section's input elements.
+    if (focusedFieldId) {
+      const field = document.getElementById(focusedFieldId);
+      if (field && this.list.current?.contains(field) && field !== document.activeElement) {
+        field.focus();
+      } else if (focusedFieldId === `grocery-market-${this.props.movedItemId}`) {
+        document.getElementById(`market-filter-${this.props.selectedMarket}`)?.focus();
+      }
     }
-    this.props.changeData(groceryId, GroceryBuyed);
-  };
-
-  handleGrocerieNameInputChanged = (groceryId: string) => (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    console.log(event, event.currentTarget.value, groceryId);
-    this.props.changeGrocerieName(groceryId, event.currentTarget.value);
-  };
+    if (previousProps.groceries.length > 0 && this.props.groceries.length === 0) {
+      this.setState({ editMode: false });
+    }
+  }
 
   toggleEditMode = () => {
-    this.setState({ editMode: !this.state.editMode });
+    this.setState((state: GroceryState) => ({
+      editMode: !state.editMode
+    }));
   };
 
-  
-  handleChange = (areaChanged: string, groceryId: string) =>
-    {
-      this.setState({area: areaChanged})
-      console.log(areaChanged, groceryId, this.state.area);
-      this.props.changeGrocerieArea(groceryId, areaChanged);
+  private runAction = async (
+    grocery: GroceryType,
+    field: string,
+    action: () => Promise<void>,
+    onSuccess?: () => void
+  ): Promise<void> => {
+    const key = `${grocery.id}:${field}`;
+    const version = (this.operations.get(key) ?? 0) + 1;
+    this.operations.set(key, version);
+    this.setState(state => {
+      const errors = { ...state.errors };
+      delete errors[key];
+      return { errors };
+    });
+    try {
+      await action();
+    } catch (error) {
+      if (this.mounted && this.operations.get(key) === version) {
+        this.setState(state => ({
+          errors: {
+            ...state.errors,
+            [key]: {
+              name: grocery.name,
+              retry: () => { void this.runAction(grocery, field, action, onSuccess); }
+            }
+          }
+        }));
+      }
+      return;
+    }
+    if (this.mounted && this.operations.get(key) === version && onSuccess) onSuccess();
   };
 
-  getAreaLabelName = (savedAreaIdentifier: string) => {
-    type ObjectKey = keyof typeof AreaNames;
-    const AreaNamesObjectKey = savedAreaIdentifier as ObjectKey;
-    let AreaNameIdentified = AreaNames[AreaNamesObjectKey] ? AreaNames[AreaNamesObjectKey].name : 'undefined';
-    return AreaNameIdentified;
-  }
+  private editName = (grocery: GroceryType, value: string) => {
+    this.setState(state => ({ names: { ...state.names, [grocery.id]: value } }));
+    void this.runAction(grocery, "name",
+      () => this.props.changeGrocerieName(grocery.id, value),
+      () => this.setState(state => {
+        const names = { ...state.names };
+        delete names[grocery.id];
+        return { names };
+      })
+    );
+  };
 
-  getAreaLabelColor = (savedAreaIdentifier: string) => {
-    type ObjectKey = keyof typeof AreaNames;
-    const AreaColorObjectKey = savedAreaIdentifier as ObjectKey;
-    let AreaColorIdentified = AreaNames[AreaColorObjectKey] ? AreaNames[AreaColorObjectKey].color : 'red';
-    return AreaColorIdentified;
-  }
+  private editArea = (grocery: GroceryType, value: string) => {
+    this.setState(state => ({ areas: { ...state.areas, [grocery.id]: value } }));
+    void this.runAction(grocery, "area",
+      () => this.props.changeGrocerieArea(grocery.id, value),
+      () => this.setState(state => {
+        const areas = { ...state.areas };
+        delete areas[grocery.id];
+        return { areas };
+      })
+    );
+  };
+
+  private editMarket = (grocery: GroceryType, value: string) => {
+    if (value !== "" && !isMarketId(value)) {
+      void this.runAction(grocery, "market", () => Promise.reject(new Error("Ungültiger Markt.")));
+      return;
+    }
+    this.setState(state => ({ marketDrafts: { ...state.marketDrafts, [grocery.id]: value } }));
+    const market = isMarketId(value) ? value : null;
+    void this.runAction(grocery, "market",
+      () => this.props.changeGrocerieMarket(grocery.id, market),
+      () => this.setState(state => {
+        const marketDrafts = { ...state.marketDrafts };
+        delete marketDrafts[grocery.id];
+        return { marketDrafts };
+      })
+    );
+  };
 
   render() {
-    const orderedGroceries = this.props.groceries
-    .sort((a, b) => a.area > b.area ? 1 : -1)
-    .map((grocery) => 
-      <div className="GroceryItem" key={grocery.id}>
-        <Card className="Card">
-          <CardContent>
-            <Typography variant="h5" component="h2">
-              {this.state.editMode ? (
-                <div>
-                  <TextField
-                  id="outlined-helperText"
-                  label="Helper text"
-                  onChange={this.handleGrocerieNameInputChanged(grocery.id)}
-                  value={grocery.name}
-                  margin="normal"
-                  variant="outlined"
-                />
-                <br></br>
-                <FormControl>
-                  <InputLabel id="demo-simple-select-label">Bereich</InputLabel>
-                  <Select
-                    id="demo-simple-select"
-                    value={grocery.area}
-                    onChange={(event) => this.handleChange(event.target.value as string, grocery.id)}
-                  >
-                    <MenuItem value={AreaNames.Avegetables.identifier}>{AreaNames.Avegetables.name}</MenuItem>
-                    <MenuItem value={AreaNames.Bcooling.identifier}>{AreaNames.Bcooling.name}</MenuItem>
-                    <MenuItem value={AreaNames.Ebakery.identifier}>{AreaNames.Ebakery.name}</MenuItem>
-                    <MenuItem value={AreaNames.Gcakestuff.identifier}>{AreaNames.Gcakestuff.name}</MenuItem>
-                    <MenuItem value={AreaNames.DdryFood.identifier}>{AreaNames.DdryFood.name}</MenuItem>
-                    <MenuItem value={AreaNames.Fhygiene.identifier}>{AreaNames.Fhygiene.name}</MenuItem>
-                    <MenuItem value={AreaNames.Cmeat.identifier}>{AreaNames.Cmeat.name}</MenuItem>
-                    <MenuItem value={AreaNames.Hother.identifier}>{AreaNames.Hother.name}</MenuItem>
-                  </Select>
-                </FormControl>
-                </div>
-              ) : (
-                grocery.name  
-              )}
-            </Typography>
-            {!this.state.editMode && grocery.area && (
-                <Chip
-                style={{backgroundColor: this.getAreaLabelColor(grocery.area)}}
-                label={this.getAreaLabelName(grocery.area)}
-                />
-            )}
-          </CardContent>
-          <CardActions disableSpacing>
-            {this.state.editMode ? (
-              <Button onClick={this.toggleEditMode} size="small">
-                speichern
-              </Button>
-            ) : (
-              <Button
-                onClick={() =>
-                  this.handleGroceryBuyedButtonClicked(
-                    grocery.id,
-                    grocery.buyed
-                  )
-                }
-                size="small"
-              >
-                gekauft
-              </Button>
-            )}
-          </CardActions>
-        </Card>
-      </div>
-    );
-
-    const groceryList =
-      this.props.groceries.length > 0 ? (
-        <div>
-          <div className="EditButtonWrapper">
-            <Button
-              onClick={this.toggleEditMode}
-              variant="outlined"
-              size="small"
-            >
-              <SettingsIcon />
-              Edit
-            </Button>
-          </div>
-          {orderedGroceries}
-        </div>
-      ) : (
-        <Zoom
-          in={!this.state.showSuccessMessage}
-          style={{
-            transitionDelay: !this.state.showSuccessMessage ? "200ms" : "0ms"
-          }}
-        >
-          <div className="IconWrapper">
-            <ShoppingCartOutlined color="disabled" className="CustomIcon" />
-            <Button disabled>Nichts einzukaufen</Button>
-          </div>
-        </Zoom>
-      );
-
+    const { selectedMarket, completed } = this.props;
+    const emptyTitle = completed
+      ? selectedMarket === "all" ? "Alles eingekauft"
+        : selectedMarket === "unassigned" ? "Alle Artikel ohne Markt erledigt"
+          : `Bei ${marketLabel(selectedMarket)} alles erledigt`
+      : selectedMarket === "all" ? "Nichts einzukaufen"
+        : selectedMarket === "unassigned" ? "Keine Artikel ohne Markt"
+          : `Keine Artikel bei ${marketLabel(selectedMarket)}`;
     return (
-      <div className="GroceryList">
-        <Slide
-          direction="up"
-          in={this.state.showSuccessMessage}
-          mountOnEnter
-          unmountOnExit
-        >
-          <div className="IconWrapper">
-            <DoneOutlined color="disabled" className="CustomIcon" />
-            <Button disabled>Alles eingekauft</Button>
+      <div className="GroceryList" ref={this.list}>
+        <nav className="MarketFilters" aria-label="Märkte">
+          {this.props.marketViews.map(view => (
+            <Button
+              key={view.id}
+              id={`market-filter-${view.id}`}
+              aria-pressed={selectedMarket === view.id}
+              onClick={() => this.props.onSelectMarket(view.id)}
+              className="MarketFilter"
+            >
+              {selectedMarket === view.id && <CheckOutlined />}
+              {view.label}<span className="MarketCount">{view.count}</span>
+            </Button>
+          ))}
+        </nav>
+        {Object.entries(this.state.errors).map(([key, error]) => (
+          <div className="ListError" role="alert" key={key}>
+            <p>{error.name}: Speichern fehlgeschlagen.</p>
+            <Button color="primary" onClick={error.retry}>Erneut versuchen</Button>
           </div>
-        </Slide>
-        {!this.state.showSuccessMessage && groceryList}
+        ))}
+        {this.props.groceries.length > 0 ? (
+          <React.Fragment>
+            <div className="ListToolbar">
+              <p>Nach Bereichen sortiert</p>
+              <Button
+                onClick={this.toggleEditMode}
+                color="primary"
+                aria-pressed={this.state.editMode}
+              >
+                <SettingsOutlined className="EditIcon" />
+                {this.state.editMode ? "Fertig" : "Bearbeiten"}
+              </Button>
+            </div>
+            {AreaNames.map(area => {
+              const groceries = this.props.groceries.filter(
+                grocery => getArea(grocery.area).identifier === area.identifier
+              );
+              if (groceries.length === 0) return null;
+              return (
+                <section
+                  className="GrocerySection"
+                  key={area.identifier}
+                  aria-labelledby={`category-${area.identifier}`}
+                >
+                  <h2 id={`category-${area.identifier}`}>{area.name}</h2>
+                  <ul className="GroceryItems">
+                    {groceries.map(grocery => (
+                      <li className="GroceryItem" key={grocery.id}>
+                        {this.state.editMode ? (
+                          <div className="GroceryEditFields">
+                            <TextField
+                              id={`grocery-name-${grocery.id}`}
+                              label="Artikelname"
+                              variant="outlined"
+                              fullWidth
+                              disabled={this.props.pendingIds.includes(grocery.id)}
+                              value={this.state.names[grocery.id] ?? grocery.name}
+                              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                                this.editName(grocery, event.currentTarget.value)
+                              }
+                            />
+                            <label className="AreaField" htmlFor={`grocery-area-${grocery.id}`}>
+                              Bereich
+                              <select
+                                id={`grocery-area-${grocery.id}`}
+                                disabled={this.props.pendingIds.includes(grocery.id)}
+                                value={this.state.areas[grocery.id] ?? getArea(grocery.area).identifier}
+                                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                                  this.editArea(grocery, event.currentTarget.value)
+                                }
+                              >
+                                {AreaNames.map(option => (
+                                  <option key={option.identifier} value={option.identifier}>
+                                    {option.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <div className="AreaField">
+                              <label htmlFor={`grocery-market-${grocery.id}`}>Markt</label>
+                              <select
+                                id={`grocery-market-${grocery.id}`}
+                                value={this.state.marketDrafts[grocery.id] ?? grocery.marketId ?? ""}
+                                aria-disabled={this.props.pendingIds.includes(grocery.id)}
+                                onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+                                  if (this.props.pendingIds.includes(grocery.id)) {
+                                    event.currentTarget.value = this.state.marketDrafts[grocery.id] ?? grocery.marketId ?? "";
+                                    return;
+                                  }
+                                  this.editMarket(grocery, event.currentTarget.value);
+                                }}
+                              >
+                                {grocery.marketId && !isMarketId(grocery.marketId) && (
+                                  <option value={grocery.marketId} disabled>Unbekannter Markt</option>
+                                )}
+                                <option value="">Ohne Markt</option>
+                                {markets.map(market => (
+                                  <option key={market.id} value={market.id}>{market.label}</option>
+                                ))}
+                              </select>
+                              {grocery.marketId && !isMarketId(grocery.marketId) && (
+                                <small>Unbekannter Markt. Bitte neu zuordnen.</small>
+                              )}
+                            </div>
+                            {this.props.pendingIds.includes(grocery.id) && <small role="status">Wird gespeichert …</small>}
+                          </div>
+                        ) : (
+                          <React.Fragment>
+                            <IconButton
+                              className="PurchaseButton"
+                              color="primary"
+                              aria-label={`${grocery.name} als gekauft markieren`}
+                              disabled={this.props.pendingIds.includes(grocery.id)}
+                              onClick={() => {
+                                void this.runAction(grocery, "buyed",
+                                  () => this.props.changeData(grocery.id, grocery.buyed));
+                              }}
+                            >
+                              <CheckBoxOutlineBlank />
+                            </IconButton>
+                            <div className="GroceryDetails">
+                              <span className="GroceryName">{grocery.name}</span>
+                              {selectedMarket === "all" && (
+                                <span className="GroceryMarket">{marketLabel(grocery.marketId)}</span>
+                              )}
+                              {this.props.pendingIds.includes(grocery.id) && <small role="status">Wird gespeichert …</small>}
+                            </div>
+                          </React.Fragment>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+          </React.Fragment>
+        ) : (
+          <div className="EmptyList" role="status">
+            {completed
+              ? <DoneOutlined className="EmptyListIcon" />
+              : <ShoppingCartOutlined className="EmptyListIcon" />}
+            <h2>{emptyTitle}</h2>
+            <p>Füge Artikel für deinen nächsten Einkauf hinzu.</p>
+          </div>
+        )}
       </div>
     );
   }

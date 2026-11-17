@@ -1,8 +1,32 @@
 # Proposal: a calmer shopping list, then markets
 
-Status: design and objection resolutions approved by the engineer on 2026-11-17.
-Implementation starts only after the plan and matching objection record are
-committed; review the visual foundation before starting market behavior.
+Status: implemented on `feature/market-shopping-redesign`. Design and objection
+resolutions approved on 2026-11-17; the engineer accepted the visual foundation
+before market implementation. The engineer also accepted the completed feature
+and requested its commit. The feature remains unreleased.
+External Firebase rule compatibility is still a release gate.
+
+## Delivery verification
+
+- Design artifacts were committed before implementation in `dec1a03`.
+- B acceptance: "visual review ok, move on".
+- C delivers counted filters, optional market assignment/repair,
+  destination-aware creation/re-add, acknowledged membership changes,
+  retryable failures, and scoped completion on the shared list.
+- Biohof (`biohof`) was added to the catalog before the approved feature commit;
+  seven filters are now available, including Alle and Ohne Markt.
+- Validation: 35 tests in four suites, production build/type-check, and
+  whitespace checks pass. Browser checks use synthetic Firebase data only:
+  320/390/1280px layouts, scrollable/reachable filters, 44px targets, focused
+  last-row clearance, actual 200% browser zoom, pending/rejected/acknowledged
+  writes, scoped completion, market-move focus, and add/re-add destinations.
+- Category sections filter into existing identifier order without mutating
+  props; no sorting or migration is necessary.
+- Temporary plan and matching objection record are removed after verification.
+  This story retains the product decisions and approved O1-O3 rationale.
+- No production Firebase data was accessed or changed; no push or deployment.
+  The authorized owner must verify optional market IDs/null clearing against
+  deployed Firebase rules before release.
 
 ## Story
 
@@ -17,7 +41,8 @@ the overall list.
   and clear category sections.
 - One planned market per item. Buying that item completes it in the shared list.
 - Keep unassigned items visible in a dedicated view.
-- Fixed starter markets: Hofer, Billa, Lidl, Bauhaus. Market management comes later.
+- Fixed starter markets: Hofer, Billa, Lidl, Bauhaus; Biohof added before commit.
+  Market management comes later.
 - Split delivery into separately reviewable tasks. No framework upgrade required.
 
 ### Approved objection resolutions
@@ -29,13 +54,13 @@ the overall list.
   Keep receiving updates for other records; do not freeze the whole collection.
 - **O2 (visual foundation):** Normalize a null Firebase collection to an empty
   list. Test the transition from an empty collection to the first created item.
-  The market task also tests all six zero-count filters on an empty collection.
+  The market task also tests all catalog filters on an empty collection.
 - **O3 (market task):** After an acknowledged market edit removes the focused row
   from the active view, focus the selected market's filter and politely announce
   the destination. Cover moving the last item out of a market. Do not steal focus
   if the user has already moved focus elsewhere while the write was pending.
 
-## Current experience and constraints
+## Baseline experience and constraints (before implementation)
 
 The app renders a tall card per item, a global edit toggle, and a fixed add button.
 Categories are colored chips; items are sorted by category identifier.
@@ -166,11 +191,11 @@ These are behavior changes for the market task, not the initial visual refresh.
 
 ## Data and interaction decision (ADR)
 
-- **Status:** Accepted on 2026-11-17; implementation pending.
+- **Status:** Accepted and implemented on 2026-11-17.
 - **Context:** The current shared Firebase collection represents reusable shopping
   entries. The user wants one planned market per entry, not independent store lists.
 - **Decision:** Add optional `marketId` with stable values `hofer`, `billa`, `lidl`,
-  `bauhaus`. Missing or null means unassigned; write null to clear the field.
+  `bauhaus`, `biohof`. Missing or null means unassigned; write null to clear the field.
   Do not persist a filter value such as `all` or an unassigned sentinel.
   Keep the fixed market catalog in source, not a new Firebase collection.
   Derive the visible list and counts from one subscribed collection.
@@ -189,7 +214,7 @@ These are behavior changes for the market task, not the initial visual refresh.
 
 - **AC-01:** Visual refresh preserves add, re-add, buy, name/category editing,
   loading, retry, and empty-list flows before market behavior is introduced.
-- **AC-02:** Final filters are Alle, Ohne Markt, Hofer, Billa, Lidl, Bauhaus in that
+- **AC-02:** Final filters are Alle, Ohne Markt, Hofer, Billa, Lidl, Bauhaus, Biohof in that
   order, with outstanding-item counts, including zero-count markets.
 - **AC-03:** Each outstanding item appears once in Alle and once in its market
   view (or Ohne Markt); bought items do not contribute to any outstanding count.
@@ -219,12 +244,12 @@ Keep C one coherent task so that a filter-only UI cannot ship without safe add,
 edit, and re-add behavior. Tests and documentation belong with B and C, not a
 separate later quality task. Review B before starting C.
 
-No application code, dependencies, Firebase records, commits, pushes, or
-deployments are changed by this proposal. After approval, commit the temporary
-plan and matching objection record before implementation; delete both when the
-implementation is complete. Retain the story as the product decision record.
+Task A changed documentation only. Its temporary plan and matching objection
+record were committed before implementation and removed on completion.
+B/C change existing components and tests without new dependencies, Firebase
+migration, push, or deployment. Retain this story as the product decision record.
 
-## Recommendations for Implementing
+## Original implementation recommendations (baseline context)
 
 ### Existing patterns to carry forward
 

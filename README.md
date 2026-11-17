@@ -4,6 +4,39 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 [Contributor onboarding](ONBOARDING.md)
 
+## Shopping list
+
+- **Einkaufsliste** shows the outstanding-item count and a compact checklist,
+  grouped by category. Missing or unknown categories appear under **Sonstiges**.
+- Filter by **Alle**, **Ohne Markt**, **Hofer**, **Billa**, **Lidl**, **Bauhaus**,
+  or **Biohof**.
+  Counts include outstanding items only; empty markets remain selectable.
+  Each app load starts at **Alle**.
+- Use the square action beside an item to mark it bought in the shared list.
+  Completing one market names that market, not the entire shopping trip.
+- **Bearbeiten** opens name/category/market editing. Changes save immediately;
+  **Fertig** exits editing, rather than submitting a separate save.
+- **Hinzufügen** opens full-screen search. Select a previously bought item to
+  re-add it, or enter a nonblank name to create an item, even beside matches.
+  New items default to the selected market, or **Ohne Markt** from **Alle**.
+  Re-adds keep their saved market unless you deliberately change the selector;
+  the action and success message show the destination. Active matches cannot
+  be re-added.
+- Purchase/market changes and count contributions wait for Firebase write
+  acknowledgment. Failed writes show an error and retain retryable input.
+  Unrelated realtime changes continue updating.
+- The warm-neutral/green layout supports narrow screens, visible keyboard focus,
+  and reduced motion. The fixed add action leaves room to reach the last item.
+
+All entries share one Firebase list, with one optional `marketId` per item.
+Missing/null or unknown markets appear in **Ohne Markt**; unknown values can be
+repaired in editing. No migration or custom market management is included.
+
+**Before release:** the authorized Firebase project owner must verify deployed
+rules accept the optional market field, supported IDs, and null clearing.
+Rules are external to this repository; local validation uses synthetic data,
+not the shared database.
+
 ## Available Scripts
 
 Use Node.js 22.x. Install the locked dependencies from the public npm registry:
