@@ -1,50 +1,98 @@
+html {
+  scroll-padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+}
+
 .App {
-  text-align: center;
-  background-color: #f5f5f5;
   min-height: 100vh;
+  background: #f7f6f2;
+  color: #202923;
 }
 
-.BottomNavigation {
-  position: fixed;
-  bottom: 10px;
+.App *,
+.ShoppingDialog * {
+  box-sizing: border-box;
+}
+
+.AppContent {
   width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 16px calc(112px + env(safe-area-inset-bottom, 0px));
 }
 
-.SearchBar {
-  width: 100%;
-  height: 100%;
+.AppHeader {
+  margin-bottom: 24px;
+}
+
+.AppEyebrow {
+  margin: 0 0 8px;
+  color: #56635a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.AppHeader h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.AppSummary {
+  margin: 8px 0 0;
+  color: #56635a;
+  line-height: 1.5;
+}
+
+.WriteStatus {
+  color: #245c3a;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.StatusPanel {
+  padding: 24px 16px;
+  border: 1px solid #d5dcd5;
+  border-radius: 12px;
+  background: #fff;
+  line-height: 1.5;
+}
+
+.StatusPanel h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.AddActionBar {
   position: fixed;
-  background: red;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: #f7f6f2;
+  border-top: 1px solid #d5dcd5;
 }
 
-.InputWrapper {
-  position: fixed;
-  bottom: 65px;
+.AddActionBar svg {
+  margin-right: 8px;
 }
 
-.Card {
-  min-width: 275;
-  margin-bottom: 10px;
+.App button:focus-visible,
+.App input:focus-visible,
+.App select:focus-visible,
+.ShoppingDialog button:focus-visible,
+.ShoppingDialog input:focus-visible,
+.ShoppingDialog select:focus-visible {
+  outline: 3px solid #245c3a;
+  outline-offset: 3px;
 }
 
-.Bullet {
-  display: inline-block;
-  margin: 0 2px;
-  transform: scale(0.8);
-}
-
-.Title {
-  font-size: 14;
-}
-
-.Pos {
-  margin-bottom: 12;
-}
-
-.AppBar {
-  position: relative;
-}
-
-.Title {
-  flex: 1;
+@media (prefers-reduced-motion: reduce) {
+  .App *,
+  .ShoppingDialog * {
+    animation: none !important;
+    transition: none !important;
+  }
 }

@@ -1,22 +1,182 @@
-.GroceryList {
-  padding: 10px;
-  height: 100%;
-  padding-bottom: 64px;
+.MarketFilters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 4px 12px;
+  margin: 0 -4px 16px;
 }
 
-.IconWrapper {
-  margin-top: 2em;
+.MarketFilters .MarketFilter {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid #89958b;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.MarketFilter .MuiButton-label {
+  gap: 8px;
+}
+
+.MarketFilters .MarketFilter[aria-pressed="true"] {
+  background: #245c3a;
+  border-color: #245c3a;
+  color: #fff;
+}
+
+.MarketFilter svg {
+  font-size: 18px;
+}
+
+.MarketCount {
+  font-variant-numeric: tabular-nums;
+}
+
+.GroceryDetails {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  min-width: 0;
+  padding: 4px 0;
 }
 
-.CustomIcon {
-  font-size: 5em !important;
+.GroceryMarket,
+.GroceryDetails small {
+  color: #56635a;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.EditButtonWrapper {
+.ListError {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #a32d25;
+  border-radius: 12px;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.ListError p {
+  margin: 0;
+  color: #82251f;
+  line-height: 1.5;
+}
+
+.AreaField select[aria-disabled="true"] {
+  opacity: 0.7;
+}
+
+.ListToolbar {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ListToolbar p {
+  margin: 0;
+  font-size: 14px;
+  color: #56635a;
+}
+
+.ListToolbar .EditIcon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.GrocerySection {
+  margin-bottom: 24px;
+}
+
+.GrocerySection h2 {
+  margin: 0 0 8px;
+  color: #56635a;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.GroceryItems {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #d5dcd5;
+  border-radius: 12px;
+}
+
+.GroceryItem {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 4px 12px 4px 4px;
+  gap: 4px;
+}
+
+.GroceryItem + .GroceryItem {
+  border-top: 1px solid #e4e8e2;
+}
+
+.GroceryName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.GroceryItem .PurchaseButton {
+  flex-shrink: 0;
+}
+
+.GroceryEditFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+  padding: 16px 8px;
+}
+
+.AreaField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: #56635a;
+}
+
+.AreaField select {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid #89958b;
+  border-radius: 12px;
+  background: #fff;
+  color: #202923;
+  font: inherit;
+  font-size: 16px;
+}
+
+.EmptyList {
+  padding: 40px 16px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #d5dcd5;
+  border-radius: 12px;
+}
+
+.EmptyList .EmptyListIcon {
+  color: #245c3a;
+  font-size: 48px;
+}
+
+.EmptyList h2 {
+  margin: 16px 0 8px;
+  font-size: 18px;
+}
+
+.EmptyList p {
+  margin: 0;
+  color: #56635a;
+  line-height: 1.5;
 }
